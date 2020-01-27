@@ -36,6 +36,7 @@ if(Obj.Connect()):
                         longest = data[angle]
                         longest_angle = angle
             print("longest range, angle", longest, longest_angle)
+            direction = math.radians(longest_angle)
             romi.twist(speed, direction)
     except (KeyboardInterrupt, SystemExit):
         print("Quitting")
