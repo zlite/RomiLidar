@@ -22,46 +22,55 @@ for _ in range (37):  # clear the bins
     bins.append(0)
 port = "/dev/ttyUSB0" #linux
 Obj = PyLidar3.YdLidarX4(port) #PyLidar3.your_version_of_lidar(port,chunk_size)
+loop = asyncio.get_event_loop()
 
-async def motors(speed, direction):
-    await romi.twist(speed, direction)
+async def motors():
+    while True:
+        romi.twist(speed, direction)
+        await asyncio.sleep(0)
 
-async def main:
-    if(Obj.Connect()):
-            print(Obj.GetDeviceInfo())
-            gen = Obj.StartScanning()
-            t = time.time() # start time
-            while True:
-                data = next(gen)
-                longest = 0
-                longest_bin = 0
-                counter = 1
-                for bin_num in range (37):  # clear the bins
-                    bins[bin_num] = 0
-                bin_num = 0
-                for angle in range(0,360):
-                    if(data[angle]> 0):
-                        if counter < 10:
-                            bins[bin_num] = bins[bin_num] + data[angle]
-                            counter = counter + 1
-                        else:
-                            bins[bin_num] = bins[bin_num] + data[angle]
-                            bin_num = bin_num +1
-                            counter = 1
-                for bin_num in range(37):
-                    if bins[bin_num] > longest:
-                        longest = bins[bin_num]
-                        longest_bin = bin_num
-                print("longest range bin, bin #", round(longest/1000,0), longest_bin)
-                direction = round(math.radians((longest_bin*10)-180),2)
-                print ("Direction:", direction)
-    else:
-        print("Error connecting to device")
+async def main():
+    global speed, direction
+    t = time.time() # start time
+    while True:
+        data = next(gen)
+        longest = 0
+        longest_bin = 0
+        counter = 1
+        for bin_num in range (37):  # clear the bins
+            bins[bin_num] = 0
+        bin_num = 0
+        for angle in range(0,360):
+            if(data[angle]> 0):
+                if counter < 10:
+                    bins[bin_num] = bins[bin_num] + data[angle]
+                    counter = counter + 1
+                else:
+                    bins[bin_num] = bins[bin_num] + data[angle]
+                    bin_num = bin_num +1
+                    counter = 1
+        for bin_num in range(37):
+            if bins[bin_num] > longest:
+                longest = bins[bin_num]
+                longest_bin = bin_num
+        print("longest range bin, bin #", round(longest/1000,0), longest_bin)
+        direction = round(math.radians((longest_bin*10)-180),2)
+        print ("Direction:", direction)
+        await asyncio.sleep(0.3)
 
 try:
-    loop.run_until_complete(
-        main()
-        )
+    if(Obj.Connect()):
+        print(Obj.GetDeviceInfo())
+        gen = Obj.StartScanning()
+    else:
+        print("Error connecting to device")
+    ioloop = asyncio.get_event_loop()
+    tasks = [
+        ioloop.create_task(main()),
+        ioloop.create_task(motors())
+        ]
+    ioloop.run_until_complete(asyncio.wait(tasks))
+    ioloop.close()
 except (KeyboardInterrupt, SystemExit):
     print("Quitting")
     Obj.StopScanning()
