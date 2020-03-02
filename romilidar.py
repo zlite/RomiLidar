@@ -55,7 +55,7 @@ async def main():
                 longest = bins[bin_num]
                 longest_bin = bin_num
         longest = round(longest/1000,1)
-        
+
         left_total = 0
         right_total = 0
         for x in range(0,longest_bin-1): # sum the left side
@@ -64,7 +64,7 @@ async def main():
 
         for x in range(longest_bin+1,bintotal): # sum the right side
             right_total = right_total + bins[x]
-        right_average = round((right_total/(bintotal-longest_bin-1))/1000,1)
+        right_average = round((right_total/(bintotal-(longest_bin+1)))/1000,1)
 
         print("Longest range",longest)
         print("Left average", left_average)
@@ -74,8 +74,10 @@ async def main():
         else:
             furthest_side_dist = right_average
 
-        direction = longest_bin + (longest-furthest_side_dist)*0.1
         print("longest bin #", longest_bin)
+        bias = (longest-furthest_side_dist)*0.1
+        print("Bias: ", bias)
+        direction = longest_bin + bias
         print("Adjusted direction", direction)
         direction = round(math.radians((longest_bin*10)-180),2)
         print ("Steer:", direction)
