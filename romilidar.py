@@ -12,7 +12,9 @@ longest = 0
 longest_angle = 0
 linear_ms = 0.0
 rotate_rads = 0.0
+offset = 0
 bintotal = 37  # how many bins there are
+scale = 180/(bintotal/2)
 x=[]
 y=[]
 bins=[]
@@ -60,11 +62,16 @@ async def main():
         right_total = 0
         for x in range(0,longest_bin-1): # sum the left side
             left_total = left_total + bins[x]
-        left_average = round((left_total/(longest_bin-1))/1000,1)
-
+        if (longest_bin-1) != 0:  # watch out for divide by zero
+            left_average = round((left_total/(longest_bin-1))/1000,1)
+        else:
+            print ("divide by zero error!")
         for x in range(longest_bin+1,bintotal): # sum the right side
             right_total = right_total + bins[x]
-        right_average = round((right_total/(bintotal-(longest_bin+1)))/1000,1)
+        if (bintotal-(longest_bin+1)) != 0:  # watch out for divide by zero
+            right_average = round((right_total/(bintotal-(longest_bin+1)))/1000,1)
+        else:
+            print ("divide by zero error!")
 
         print("Longest range",longest)
         print("Left average", left_average)
@@ -75,12 +82,18 @@ async def main():
             furthest_side_dist = right_average
 
         print("longest bin #", longest_bin)
-        bias = (longest-furthest_side_dist)*0.1
+        bias = round((longest-furthest_side_dist)*0.1,1)
         print("Bias: ", bias)
-        direction = longest_bin + bias
-        print("Adjusted direction", direction)
-        direction = round(math.radians((longest_bin*10)-180),2)
-        print ("Steer:", direction)
+        temp_direction = longest_bin + bias
+        print("Adjusted direction", temp_direction)
+        temp_direction = round(math.radians(((longest_bin+bias)*scale)-180),2)
+        print ("Steer:", temp_direction)
+        direction = temp_direction + offset
+        # if temp_direction > 0:
+        #     direction = temp_direction
+        # else:
+        #     print ("Negative direction", round(math.pi + temp_direction,2))
+        #     direction = round(math.pi + temp_direction,2)
         await asyncio.sleep(0.3)
 
 try:
