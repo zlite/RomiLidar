@@ -13,11 +13,17 @@ async def motors():
     global direction
     while True:
         romi.twist(speed, direction)
+        romi.twist(speed, 0)
         await asyncio.sleep(0)
 
 async def main():
     global speed, direction, switch
     t = time.time() # start time
+    # do bogus thing
+    for i in range (1000):
+        for j in range(1000):
+            k = i*j
+
     while True:
         if direction < 1 and not switch:
             direction += 0.1
