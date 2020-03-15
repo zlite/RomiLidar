@@ -13,6 +13,7 @@ longest_angle = 0
 linear_ms = 0.0
 rotate_rads = 0.0
 offset = 0
+increment_turn = 0.2
 bintotal = 37  # how many bins there are
 scale = 180/(bintotal/2)
 x=[]
@@ -30,13 +31,16 @@ loop = asyncio.get_event_loop()
 async def motors():
     while True:
         romi.twist(speed, direction)
+        romi.twist(speed,0) #go straight
         await asyncio.sleep(0)
 
 async def main():
     global speed, direction
     t = time.time() # start time
     while True:
+        print ("Collecting data")
         data = next(gen)
+        print ("got data")
         longest = 0
         longest_bin = 0
         counter = 1
@@ -87,8 +91,12 @@ async def main():
         temp_direction = longest_bin + bias
         print("Adjusted direction", temp_direction)
         temp_direction = round(math.radians(((longest_bin+bias)*scale)-180),2)
-        print ("Steer:", temp_direction)
-        direction = temp_direction + offset
+        print ("Open path direction:", temp_direction)
+        if temp_direction < 0:
+            direction = round(direction - increment_turn + offset,2)
+        if temp_direction > 0:
+            direction = round(direction + increment_turn + offset,2)
+        print ("Steer", direction)
         # if temp_direction > 0:
         #     direction = temp_direction
         # else:
