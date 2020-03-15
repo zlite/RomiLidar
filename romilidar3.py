@@ -2,6 +2,7 @@ from romipi_astar.romipi_driver import AStar
 import time
 import PyLidar3
 import math
+import threading
 
 
 romi = AStar()
@@ -16,6 +17,12 @@ port = "/dev/ttyUSB0" #linux
 Obj = PyLidar3.YdLidarX4(port) #PyLidar3.your_version_of_lidar(port,chunk_size)
 
 
+def drive():
+    while True:
+        romi.twist(speed, direction)
+        time.sleep(0.2)
+
+
 def main():
     global direction
     while True:
@@ -23,10 +30,13 @@ def main():
         left_total = 0
         right_total = 0
         center_total = 0
-        for angle in range(340,20):  # measure the center
+        for angle in range(340,360):  # measure the center
             if(data[angle]> 0):
                 center_total = center_total + data[angle]
-        center_average = round(center_total/40000,2)
+        for angle in range(0,20):  # measure the center
+            if(data[angle]> 0):
+                center_total = center_total + data[angle]
+        center_average = round(center_total/40000,2)        
         for angle in range(20,120):  # measure the right side
             if(data[angle]> 0):
                 right_total = right_total + data[angle]
@@ -47,16 +57,12 @@ def main():
         if direction > math.pi: direction = math.pi  # avoid overturning
         if direction < -math.pi: direction = -math.pi
         print ("Steer", direction)
-        romi.twist(speed, direction)
-        romi.twist(speed,0) #go straight
-        time.sleep (0.5)
-
-
 
 try:
     if(Obj.Connect()):
         print(Obj.GetDeviceInfo())
         gen = Obj.StartScanning()
+        threading.Thread(target=drive).start()
     else:
         print("Error connecting to device")
     main()
