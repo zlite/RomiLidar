@@ -49,20 +49,22 @@ def main():
         print("Center average", center_average)
         print("Left average", left_average)
         print("Right average", right_average)
-        difference = (left_average - right_average)/1000
-        if (center_average > right_average) and (center_average > left_average) and (center_average > 200): # forward is clearer
-            if left_average < 200: # too close to left wall
-                bias = -0.4
-            if right_average < 200: # too close to right wall
-                bias = 0.4
-            direction = 0 + bias
-        if (left_average > right_average) and (left_average > center_average):
-            direction = round(direction + (increment_turn*(difference)),2)
-        if (right_average > left_average) and (right_average > center_average):
-            direction = round(direction - (increment_turn*(-1*difference)),2)
-        if direction > math.pi: direction = math.pi  # avoid overturning
-        if direction < -math.pi: direction = -math.pi
-        print ("Steer", direction)
+        left_y = math.sin(math.pi/4) * left_average
+        left_x = -1*math.cos(math.pi/4) * left_average
+        right_y = math.sin(math.pi/4) * right_average
+        right_x = math.cos(math.pi/4) * right_average
+        center_y = center_average
+
+        sum_x = round(left_x + right_x,2)
+        sum_y = round(center_y - (left_y + right_y)/2,2)
+        if sum_y < 100:
+            sum_y = 100
+        print("Sum x:", sum_x, "Sum y: ", sum_y)
+        sum_angle = math.atan2(sum_x,sum_y)
+        print ("Sum Steer", round(sum_angle,2))
+        direction = -1* sum_angle
+        sum_dist = math.sqrt(sum_x**2 + sum_y**2)
+
 
 try:
     if(Obj.Connect()):
